@@ -1,0 +1,74 @@
+def inflation(CPI1, CPI2):
+	"""(number, number) --> percent
+	Return the rate of inflation given two consumer price indices."""
+	return (CPI2-CPI1)/CPI1
+
+def csv_to_matrix(csv_file):
+	"""Takes a comma-delimited csv file (csv_file) and divides it into a matrix."""
+	matrix = []
+	lines = csv_file.read().strip().split("\n")
+	for index, line in enumerate(lines):
+		lines[index]=line.split(",")
+		matrix.append(lines[index])
+	return matrix
+def csv_to_dict(csv_file, k):
+	"Takes a csv file (csv_file) and unique identifier (k) and returns a dictionary version of the file where the main keys are k"
+	lines = csv_file.read().split("\n")
+	for index, line in enumerate(lines):
+		lines[index] = line.split(",")
+		#Remove leading and trailing spaces from values
+		stripped = []
+		for item in lines[index]:
+			stripped.append(item.strip())
+		lines[index] = stripped	
+	#save the header row as a special list of its own - items in this list will be the sub-keys for the dictionary
+	headers = lines.pop(0)
+	dict = {}
+	for line in lines:
+		single_line_dict = {}
+		#print zip(headers, line)
+		for header, element in zip(headers, line):
+			#print "header is {0} and element is {1}".format(header, element)
+			single_line_dict[header] = element
+			#print single_line_dict
+		dict[single_line_dict.get(k)] = single_line_dict
+	return dict
+
+def dict_to_csv (dict, headers):
+	csv_string = ""
+	for header in headers:
+		csv_string +=(header+',')
+	csv_string +='\n'
+	for v in dict.itervalues():
+		for header in headers:
+			csv_string += v.get(header)+','
+		csv_string +=('\n')
+	return csv_string
+
+with open("econometricsCPI7CountriesT1.2.csv") as CPI7_file:
+	CPI7List = csv_to_matrix(CPI7_file)
+	# Country names are in the first column, which is labeled "year" because those are the column names
+	# print CPI7List
+	#inflationDict will look like this: 
+	#{{'Germany':{1976: x%},{1977: y%},etc.}, {U.S.: {etc.}}
+	# print type(CPI7List)
+#	print CPI7List
+	years = CPI7List.pop(0)[1:]
+	# print years
+	countries = []
+	for row in CPI7List:
+		country = row[0]
+		countries.append(country)
+	# print countries
+	inflationDict = {}
+	for row in CPI7List:
+		CPI1cell = 1
+		CPI2cell = 2
+		countryInflationList = []
+		while CPI2cell<=24:
+			rate = inflation(float(row[CPI1cell]), float(row[CPI2cell])) #calculating inflation rate
+			countryInflationList.append(rate) # creating a list of inflation rates for each country
+			CPI1cell+=1
+			CPI2cell+=1
+		inflationDict[row[0]]=zip(years,countryInflationList)
+	print inflationDict
